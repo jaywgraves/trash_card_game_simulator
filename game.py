@@ -54,7 +54,10 @@ class Player(object):
         hand = []
         for i in range(self.cnt):
             if self.faceup[i]:
-                hand.append(rank_desc[i])
+                if i == self.jack_location:
+                    hand.append("J")
+                else:
+                    hand.append(rank_desc[i])
             else:
                 hand.append("_")
         return "Player {} Score {} Hand {}".format(self.desc, self.cnt, " ".join(hand))
@@ -87,38 +90,51 @@ class Player(object):
                 if rank <= self.cnt and not self.faceup[rank]:
                     # we want the top discard
                     card = round.take_discard()
-        if not card:
+        if card:
+            print("took discard",Deck.card(card))
+        else:
             card = round.top_card()
+            print("took top card",Deck.card(card))
         rank = Deck.rank(card)
         win = False
         # we have a card from either the discard or draw pile
         # anything higher than a JACK came from the draw pile
         # and is an automatic discard
         if rank > 10:
+            print('discarding drawn card', Deck.card(card))
             round.discard_card(card)
             return False
         while True:
             if self.open_spot() is None and self.jack_location is None:
                 win = True
                 break
+            print("attempting to play", Deck.card(card))
             newcard = None
             if rank == 10:  # JACK
                 # where to put it?
                 # this needs to check for None
                 first_open = self.open_spot()
+                print("placing JACK at", first_open + 1)
                 self.jack_location = first_open
                 newcard = self.hand[first_open]
+                print("revealed", Deck.card(newcard))
                 self.faceup[first_open] = True
             else:
                 if rank <= self.cnt and not self.faceup[rank]:
                     # we can use it
+                    print("we can use it!")
                     newcard = self.hand[rank]
+                    print("revealed", Deck.card(newcard))
                     self.faceup[rank] = True
+                else:
+                    print("can't use it")
             if newcard:
+                print('continuing')
                 card = newcard
                 rank = Deck.rank(card)
                 newcard = None
             else:
+                print('discarding', Deck.card(card))
                 round.discard_card(card)
                 # turn off has_jack ?
                 break
@@ -180,29 +196,30 @@ class Round(object):
         top_discard = "empty"
         if self.discard:
             top_discard = Deck.card(self.look_discard())
-        return "Round {} Top Discard {}".format(self.rnd_cnt, top_discard)
+        return "Round {} Turn {} Top Discard {}".format(self.rnd_cnt, self.turn_cnt+1, top_discard)
 
     def play(self):
         self.deal()
         winner = None
         while True:
-            print("round", self.rnd_cnt, "turn", self.turn_cnt, "discard", len(self.discard), "deck", len(self.deck))
+            print(self)
             p = self.players[self.start_idx % 2]
             self.turn_cnt += 0.5
-            print(p)
-            print(self)
-            #print()
+            print("Start Turn:", repr(p))
             win = p.play(self)
+            print("End Turn:", repr(p))
+            print("Player end:", repr(self))
             if win:
                 winner = p
                 break
             self.start_idx += 1  # next player
             p = self.players[self.start_idx % 2]
             self.turn_cnt += 0.5
-            print(p)
-            print(self)
-            print()
+            print("Start Turn:", repr(p))
             win = p.play(self)
+            print("End Turn:", repr(p))
+            print("Round end:", repr(self))
+            print()
             if win:
                 winner = p
                 break
