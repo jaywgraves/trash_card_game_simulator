@@ -50,7 +50,7 @@ class Player(object):
         self.faceup = []
 
     def __repr__(self):
-        return f"{0} {1}".format((self.desc, self.faceup))
+        return "Player {} {} {}".format(self.desc, self.cnt, self.faceup)
 
     def deal_ready(self):
         return len(self.hand) < self.cnt
