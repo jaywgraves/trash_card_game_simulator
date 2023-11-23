@@ -50,7 +50,14 @@ class Player(object):
         self.faceup = []
 
     def __repr__(self):
-        return "Player {} {} {}".format(self.desc, self.cnt, self.faceup)
+        rank_desc = "A 2 3 4 5 6 7 8 9 T".split()
+        hand = []
+        for i in range(self.cnt):
+            if self.faceup[i]:
+                hand.append(rank_desc[i])
+            else:
+                hand.append("_")
+        return "Player {} Score {} Hand {}".format(self.desc, self.cnt, " ".join(hand))
 
     def deal_ready(self):
         return len(self.hand) < self.cnt
@@ -69,7 +76,6 @@ class Player(object):
         # decide between top discard or draw pile
         # play as long as you can
         # discard
-        print(self)
         card = None
         discard = round.look_discard()
         if discard:
@@ -130,12 +136,13 @@ class Player(object):
 
 
 class Round(object):
-    def __init__(self, p1, p2, starting_player_idx):
+    def __init__(self, p1, p2, starting_player_idx, rnd_cnt):
         self.p1 = p1
         self.p2 = p2
         self.deck = Deck()
         self.discard = []
         self.turn_cnt = 0
+        self.rnd_cnt = rnd_cnt
         self.start_idx = starting_player_idx
         self.players = [p1, p2]
 
@@ -169,12 +176,22 @@ class Round(object):
     def top_card(self):
         return self.deck.cards.pop(0)
 
+    def __repr__(self):
+        top_discard = "empty"
+        if self.discard:
+            top_discard = Deck.card(self.look_discard())
+        return "Round {} Top Discard {}".format(self.rnd_cnt, top_discard)
+
     def play(self):
         self.deal()
         winner = None
         while True:
+            print("round", self.rnd_cnt, "turn", self.turn_cnt, "discard", len(self.discard), "deck", len(self.deck))
             p = self.players[self.start_idx % 2]
             self.turn_cnt += 0.5
+            print(p)
+            print(self)
+            #print()
             win = p.play(self)
             if win:
                 winner = p
@@ -182,12 +199,14 @@ class Round(object):
             self.start_idx += 1  # next player
             p = self.players[self.start_idx % 2]
             self.turn_cnt += 0.5
+            print(p)
+            print(self)
+            print()
             win = p.play(self)
             if win:
                 winner = p
                 break
             self.start_idx += 1  # first player again for next turn
-            print("turn", self.turn_cnt, "discard", len(self.discard), "deck", len(self.deck))
         if winner is p1:
             loser = p2
         else:
@@ -202,8 +221,10 @@ class Game(object):
 
     def play(self):
         starting_player_idx = 0
+        rnd_cnt = 0
         while True:
-            rnd = Round(p1, p2, starting_player_idx)
+            rnd_cnt += 1
+            rnd = Round(p1, p2, starting_player_idx, rnd_cnt)
             self.rounds.append(rnd)
             winner, loser = rnd.play()
             winner.win_round()
