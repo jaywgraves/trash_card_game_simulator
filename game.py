@@ -187,7 +187,7 @@ class Round(object):
             return None
 
     def take_discard(self):
-        card = self.discard.pop(0)
+        card = self.discard.pop()
         return card
 
     def discard_card(self, card):
