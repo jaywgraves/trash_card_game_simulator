@@ -7,11 +7,14 @@ class Deck(object):
     suits =  tuple('♠︎ ♥︎ ♣︎ ♦︎'.split(' '))
     colors = ('black', 'red')
 
-    def __init__(self, shuffle=True):
+    def __init__(self, shuffle=True, random_seed=None):
         # no jokers
         self.cards = list(range(52))
         if shuffle:
-            random.shuffle(self.cards)
+            if random_seed:
+                random.Random(random_seed).shuffle(self.cards)
+            else:
+                random.shuffle(self.cards)
 
     def __len__(self):
         return len(self.cards)
@@ -152,13 +155,14 @@ class Player(object):
 
 
 class Round(object):
-    def __init__(self, p1, p2, starting_player_idx, rnd_cnt):
+    def __init__(self, p1, p2, starting_player_idx, rnd_cnt, random_seed):
         self.p1 = p1
         self.p2 = p2
-        self.deck = Deck()
+        self.deck = Deck(random_seed=random_seed)
         self.discard = []
         self.turn_cnt = 0
         self.rnd_cnt = rnd_cnt
+
         self.start_idx = starting_player_idx
         self.players = [p1, p2]
 
@@ -231,17 +235,19 @@ class Round(object):
         return winner, loser
 
 class Game(object):
-    def __init__(self, p1, p2):
+    def __init__(self, p1, p2, random_seed):
         self.p1 = p1
         self.p2 = p2
+        self.random_seed = random_seed
         self.rounds = []
 
     def play(self):
         starting_player_idx = 0
         rnd_cnt = 0
+        print('Starting Game seed=',self.random_seed)
         while True:
             rnd_cnt += 1
-            rnd = Round(p1, p2, starting_player_idx, rnd_cnt)
+            rnd = Round(p1, p2, starting_player_idx, rnd_cnt, self.random_seed + rnd_cnt)
             self.rounds.append(rnd)
             winner, loser = rnd.play()
             winner.win_round()
@@ -259,6 +265,8 @@ class Game(object):
 if __name__ == '__main__':
     p1 = Player('a')
     p2 = Player('b')
-    g = Game(p1,p2)
+    seed = random.randint(1, 1000000)
+    #seed = 2800
+    g = Game(p1,p2, seed)
     stats = g.play()
 
