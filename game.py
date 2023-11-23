@@ -73,9 +73,13 @@ class Player(object):
         self.faceup.append(False)
 
     def open_spot(self):
+        if self.jack_location:
+            # we already have a JACK
+            return None
         for i,x in enumerate(self.faceup):
             if not x:
                 return i
+        # no open spots, we have probably won
         return None
 
     def play(self, round):
@@ -90,7 +94,7 @@ class Player(object):
                 if self.jack_location is None:
                     card = round.take_discard()
             if not card:
-                if rank <= self.cnt and not self.faceup[rank]:
+                if rank < self.cnt and not self.faceup[rank]:
                     # we want the top discard
                     card = round.take_discard()
         if card:
@@ -109,6 +113,10 @@ class Player(object):
             return False
         while True:
             if self.open_spot() is None and self.jack_location is None:
+                print(self.desc, "Wins Round")
+                # discard revealed card just to keep things clean
+                print('discarding', Deck.card(card))
+                round.discard_card(card)
                 win = True
                 break
             print("attempting to play", Deck.card(card))
@@ -160,7 +168,7 @@ class Round(object):
         self.p2 = p2
         self.deck = Deck(random_seed=random_seed)
         self.discard = []
-        self.turn_cnt = 0
+        self.turn_cnt = 0.0
         self.rnd_cnt = rnd_cnt
 
         self.start_idx = starting_player_idx
