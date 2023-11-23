@@ -131,7 +131,7 @@ class Player(object):
                 print("revealed", Deck.card(newcard))
                 self.faceup[first_open] = True
             else:
-                if rank <= self.cnt and not self.faceup[rank]:
+                if rank < self.cnt and not self.faceup[rank]:
                     # we can use it
                     print("we can use it!")
                     newcard = self.hand[rank]
@@ -221,6 +221,7 @@ class Round(object):
             win = p.play(self)
             print("End Turn:", repr(p))
             print("Player end:", repr(self))
+            print()
             if win:
                 winner = p
                 break
@@ -263,9 +264,9 @@ class Game(object):
             if winner.victory():
                 break
             if winner is p1:
-                starting_player = p2
+                starting_player_idx = 1
             else:
-                starting_player = p1
+                starting_player_idx = 0
 
         return {"stats":"belong here"}
 
