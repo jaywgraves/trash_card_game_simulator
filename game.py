@@ -215,28 +215,28 @@ class Round(object):
             top_discard = Deck.card(self.look_discard())
         return "Round {} Turn {} Top Discard {}".format(self.rnd_cnt, self.turn_cnt+1, top_discard)
 
+    def turn(self,player):
+        print("Start Turn: %s" % str(self.turn_cnt+1), repr(player))
+        win = player.play(self)
+        print("End Turn:", repr(player))
+        print("Player end:", repr(self))
+        print()
+        return win
+
     def play(self):
         self.deal()
         winner = None
         while True:
             print(self)
             p = self.players[self.start_idx % 2]
-            print("Start Turn: %s" % str(self.turn_cnt+1), repr(p))
-            win = p.play(self)
-            print("End Turn:", repr(p))
-            print("Player end:", repr(self))
-            print()
+            win = self.turn(p)
             if win:
                 winner = p
                 break
             self.start_idx += 1  # next player
-            p = self.players[self.start_idx % 2]
             self.turn_cnt += 0.5
-            print("Start Turn: %s" % str(self.turn_cnt+1), repr(p))
-            win = p.play(self)
-            print("End Turn:", repr(p))
-            print("Round end:", repr(self))
-            print()
+            p = self.players[self.start_idx % 2]
+            win = self.turn(p)
             if win:
                 winner = p
                 break
