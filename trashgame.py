@@ -270,10 +270,10 @@ class Round(object):
                 break
             self.start_idx += 1  # first player again for next turn
             self.turn_cnt += 0.5
-        if winner is p1:
-            loser = p2
+        if winner is self.p1:
+            loser = self.p2
         else:
-            loser = p1
+            loser = self.p1
         return winner, loser
 
 class Game(object):
@@ -282,7 +282,10 @@ class Game(object):
         self.p2 = p2
         self.random_seed = random_seed
         self.show_output = show_output
+
     def play(self, game_nbr):
+        p1 = self.p1
+        p2 = self.p2
         starting_player_idx = 0
         rnd_cnt = 0
         if self.show_output:
@@ -322,29 +325,4 @@ class Game(object):
         return stats
 
 
-if __name__ == '__main__':
-    all_stats = []
-    total_runs = 100
-    checkpoint = 100
-    show_output = True
-    start = time.time()
-    for i in range(total_runs):
-        game_nbr = i+1
-        p1 = Player('a')
-        p2 = Player('b')
-        seed = random.randint(1, 1000000)
-        #seed = 169338
-        g = Game(p1,p2, seed, show_output=show_output)
-        stats = g.play(game_nbr)
-        all_stats.extend(stats)
-        if (game_nbr) % checkpoint == 0:
-            filename = format(i+1, "08d") + '_stats.csv'
-            print("saving checkpoint", filename, datetime.datetime.isoformat(datetime.datetime.now()))
-            with open("data/" + filename,'w') as f:
-                for s in all_stats:
-                    f.write(",".join(str(x) for x in s) + "\n")
-            all_stats.clear()
-    end = time.time()
-
-    print("elapsed seconds", end-start)
 
