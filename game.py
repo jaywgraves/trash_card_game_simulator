@@ -98,10 +98,10 @@ class Player(object):
                     # we want the top discard
                     card = round.take_discard()
         if card:
-            print("took discard",Deck.card(card))
+            print("take discard",Deck.card(card))
         else:
             card = round.top_card()
-            print("took top card",Deck.card(card))
+            print("draw top card",Deck.card(card))
         rank = Deck.rank(card)
         win = False
         # we have a card from either the discard or draw pile
@@ -115,7 +115,7 @@ class Player(object):
             if self.open_spot() is None and self.jack_location is None:
                 print(self.desc, "Wins Round")
                 # discard revealed card just to keep things clean
-                print('discarding', Deck.card(card))
+                print('final discard of', Deck.card(card))
                 round.discard_card(card)
                 win = True
                 break
@@ -216,8 +216,7 @@ class Round(object):
         while True:
             print(self)
             p = self.players[self.start_idx % 2]
-            self.turn_cnt += 0.5
-            print("Start Turn:", repr(p))
+            print("Start Turn: %s" % str(self.turn_cnt+1), repr(p))
             win = p.play(self)
             print("End Turn:", repr(p))
             print("Player end:", repr(self))
@@ -228,7 +227,7 @@ class Round(object):
             self.start_idx += 1  # next player
             p = self.players[self.start_idx % 2]
             self.turn_cnt += 0.5
-            print("Start Turn:", repr(p))
+            print("Start Turn: %s" % str(self.turn_cnt+1), repr(p))
             win = p.play(self)
             print("End Turn:", repr(p))
             print("Round end:", repr(self))
@@ -237,6 +236,7 @@ class Round(object):
                 winner = p
                 break
             self.start_idx += 1  # first player again for next turn
+            self.turn_cnt += 0.5
         if winner is p1:
             loser = p2
         else:
@@ -261,6 +261,10 @@ class Game(object):
             winner, loser = rnd.play()
             winner.win_round()
             loser.lose_round()
+            print("- - - - - - - - - - - - - - - ")
+            print(winner.desc, "wins!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
+            print("- - - - - - - - - - - - - - - ")
+            print()
             if winner.victory():
                 break
             if winner is p1:
