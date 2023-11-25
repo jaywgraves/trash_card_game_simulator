@@ -56,11 +56,10 @@ class Player(object):
         rank_desc = "A 2 3 4 5 6 7 8 9 T".split()
         hand = []
         for i in range(self.cnt):
-            if self.faceup[i]:
-                if i == self.jack_location:
-                    hand.append("J")
-                else:
-                    hand.append(rank_desc[i])
+            if i == self.jack_location:
+                hand.append("J")
+            elif self.faceup[i]:
+                hand.append(rank_desc[i])
             else:
                 hand.append("_")
         return "Player {} Score {} Hand {}".format(self.desc, self.cnt, " ".join(hand))
@@ -73,7 +72,7 @@ class Player(object):
         self.faceup.append(False)
 
     def open_spot(self):
-        if self.jack_location:
+        if self.jack_location is not None:
             # we already have a JACK
             return None
         for i,x in enumerate(self.faceup):
@@ -123,20 +122,27 @@ class Player(object):
             newcard = None
             if rank == 10:  # JACK
                 # where to put it?
-                # this needs to check for None
                 first_open = self.open_spot()
-                print("placing JACK at", first_open + 1)
-                self.jack_location = first_open
-                newcard = self.hand[first_open]
-                print("revealed", Deck.card(newcard))
-                self.faceup[first_open] = True
+                if first_open is None:
+                    print("already have a JACK")
+                else:
+                    print("placing JACK at", first_open + 1)
+                    self.jack_location = first_open
+                    newcard = self.hand[first_open]
+                    self.hand[first_open] = card
+                    # DON'T set self.faceup location for JACKS
+                    print("revealed", Deck.card(newcard))
             else:
                 if rank < self.cnt and not self.faceup[rank]:
-                    # we can use it
                     print("we can use it!")
                     newcard = self.hand[rank]
-                    print("revealed", Deck.card(newcard))
+                    self.hand[rank] = card
                     self.faceup[rank] = True
+                    if rank == self.jack_location:
+                        print("trying to replay JACK")
+                        self.jack_location = None
+                    else:
+                        print("revealed", Deck.card(newcard))
                 else:
                     print("can't use it")
             if newcard:
@@ -147,7 +153,6 @@ class Player(object):
             else:
                 print('discarding', Deck.card(card))
                 round.discard_card(card)
-                # turn off has_jack ?
                 break
         return win  # True or False
 
@@ -262,10 +267,13 @@ class Game(object):
             winner.win_round()
             loser.lose_round()
             print("- - - - - - - - - - - - - - - ")
-            print(winner.desc, "wins!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
+            print(winner.desc, "wins round!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
             print("- - - - - - - - - - - - - - - ")
             print()
             if winner.victory():
+                print("- - - - - - - - - - - - - - - ")
+                print(winner.desc, "wins game!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
+                print("- - - - - - - - - - - - - - - ")
                 break
             if winner is p1:
                 starting_player_idx = 1
