@@ -80,7 +80,7 @@ class Player(object):
             if not x:
                 return i
         # no open spots, we have probably won
-        return None
+        return -1
 
     def play(self, round):
         # decide between top discard or draw pile
@@ -112,7 +112,7 @@ class Player(object):
             round.discard_card(card)
             return False
         while True:
-            if self.open_spot() is None and self.jack_location is None:
+            if self.open_spot() == -1 and self.jack_location is None:
                 print(self.desc, "Wins Round")
                 # discard revealed card just to keep things clean
                 print('final discard of', Deck.card(card))
