@@ -1,5 +1,6 @@
 import random
 import time
+import datetime
 
 
 class Deck(object):
@@ -338,6 +339,7 @@ if __name__ == '__main__':
         all_stats.extend(stats)
         if (game_nbr) % checkpoint == 0:
             filename = format(i+1, "08d") + '_stats.csv'
+            print("saving checkpoint", filename, datetime.datetime.isoformat(datetime.datetime.now()))
             with open("data/" + filename,'w') as f:
                 for s in all_stats:
                     f.write(",".join(str(x) for x in s) + "\n")
