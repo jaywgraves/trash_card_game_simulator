@@ -1,5 +1,5 @@
-import itertools as it
 import random
+import time
 
 
 class Deck(object):
@@ -45,10 +45,13 @@ class Player(object):
     def __init__(self, desc):
         self.desc = desc
         self.cnt = 10
+        self.streak = 0
+        self.streak_marker = ""
         self.reset()
 
     def reset(self):
         self.jack_location = None
+        self.play_cnt = 0
         self.hand = []    # these are considered face-down
         self.faceup = []
 
@@ -85,6 +88,7 @@ class Player(object):
         # decide between top discard or draw pile
         # play as long as you can
         # discard
+        play_cnt = 0
         card = None
         discard = round.look_discard()
         if discard:
@@ -111,6 +115,10 @@ class Player(object):
             round.discard_card(card)
             return False
         while True:
+            if play_cnt > self.streak:
+                self.streak = play_cnt
+                self.streak_marker = str(round.rnd_cnt) + '-' + str(round.turn_cnt)
+                #q = input('new streak ' + str(play_cnt)+ " "+ self.streak_marker)
             if self.open_spot() == -1 and self.jack_location is None:
                 print(self.desc, "Wins Round")
                 # discard revealed card just to keep things clean
@@ -131,6 +139,7 @@ class Player(object):
                     newcard = self.hand[first_open]
                     self.hand[first_open] = card
                     # DON'T set self.faceup location for JACKS
+                    play_cnt += 1
                     print("revealed", Deck.card(newcard))
             else:
                 if rank < self.cnt and not self.faceup[rank]:
@@ -138,6 +147,7 @@ class Player(object):
                     newcard = self.hand[rank]
                     self.hand[rank] = card
                     self.faceup[rank] = True
+                    play_cnt += 1
                     if rank == self.jack_location:
                         print("trying to replay JACK")
                         self.jack_location = None
@@ -255,10 +265,11 @@ class Game(object):
         self.random_seed = random_seed
         self.rounds = []
 
-    def play(self):
+    def play(self, game_nbr):
         starting_player_idx = 0
         rnd_cnt = 0
         print('Starting Game seed=',self.random_seed)
+        stats = []
         while True:
             rnd_cnt += 1
             rnd = Round(p1, p2, starting_player_idx, rnd_cnt, self.random_seed + rnd_cnt)
@@ -280,14 +291,33 @@ class Game(object):
             else:
                 starting_player_idx = 0
 
-        return {"stats":"belong here"}
+            stats.append((game_nbr,i,p1.cnt,p2.cnt,abs(p1.cnt-p2.cnt),p1.streak,p2.streak,self.random_seed+rnd_cnt))
+        print(p1.desc, "longest streak", p1.streak, p1.streak_marker)
+        print(p2.desc, "longest streak", p2.streak, p2.streak_marker)
+
+        return stats
 
 
 if __name__ == '__main__':
-    p1 = Player('a')
-    p2 = Player('b')
-    seed = random.randint(1, 1000000)
-    #seed = 2800
-    g = Game(p1,p2, seed)
-    stats = g.play()
+    all_stats = []
+    total_runs = 1000
+    checkpoint = 100
+    start = time.time()
+    for i in range(total_runs):
+        p1 = Player('a')
+        p2 = Player('b')
+        seed = random.randint(1, 1000000)
+        #seed = 169338
+        g = Game(p1,p2, seed)
+        stats = g.play(i)
+        all_stats.extend(stats)
+        if (i+1) % checkpoint == 0:
+            filename = format(i+1, "08d") + '_stats.csv'
+            with open("data/" + filename,'w') as f:
+                for s in all_stats:
+                    f.write(",".join(str(x) for x in s) + "\n")
+            all_stats.clear()
+    end = time.time()
+
+    print("elapsed seconds", end-start)
 
