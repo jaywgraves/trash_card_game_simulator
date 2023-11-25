@@ -84,7 +84,7 @@ class Player(object):
         # no open spots, we have probably won
         return -1
 
-    def play(self, round):
+    def play(self, round, show_output):
         # decide between top discard or draw pile
         # play as long as you can
         # discard
@@ -101,17 +101,20 @@ class Player(object):
                     # we want the top discard
                     card = round.take_discard()
         if card:
-            print("take discard",Deck.card(card))
+            if show_output:
+                print("take discard",Deck.card(card))
         else:
             card = round.top_card()
-            print("draw top card",Deck.card(card))
+            if show_output:
+                print("draw top card",Deck.card(card))
         rank = Deck.rank(card)
         win = False
         # we have a card from either the discard or draw pile
         # anything higher than a JACK came from the draw pile
         # and is an automatic discard
         if rank > 10:
-            print('discarding drawn card', Deck.card(card))
+            if show_output:
+                print('discarding drawn card', Deck.card(card))
             round.discard_card(card)
             return False
         while True:
@@ -120,48 +123,59 @@ class Player(object):
                 self.streak_marker = str(round.rnd_cnt) + '-' + str(round.turn_cnt)
                 #q = input('new streak ' + str(play_cnt)+ " "+ self.streak_marker)
             if self.open_spot() == -1 and self.jack_location is None:
-                print(self.desc, "Wins Round")
-                # discard revealed card just to keep things clean
-                print('final discard of', Deck.card(card))
+                if show_output:
+                    print(self.desc, "Wins Round")
+                    # discard revealed card just to keep things clean
+                    print('final discard of', Deck.card(card))
                 round.discard_card(card)
                 win = True
                 break
-            print("attempting to play", Deck.card(card))
+            if show_output:
+                print("attempting to play", Deck.card(card))
             newcard = None
             if rank == 10:  # JACK
                 # where to put it?
                 first_open = self.open_spot()
                 if first_open is None:
-                    print("already have a JACK")
+                    if show_output:
+                        print("already have a JACK")
                 else:
-                    print("placing JACK at", first_open + 1)
+                    if show_output:
+                        print("placing JACK at", first_open + 1)
                     self.jack_location = first_open
                     newcard = self.hand[first_open]
                     self.hand[first_open] = card
                     # DON'T set self.faceup location for JACKS
                     play_cnt += 1
-                    print("revealed", Deck.card(newcard))
+                    if show_output:
+                        print("revealed", Deck.card(newcard))
             else:
                 if rank < self.cnt and not self.faceup[rank]:
-                    print("we can use it!")
+                    if show_output:
+                        print("we can use it!")
                     newcard = self.hand[rank]
                     self.hand[rank] = card
                     self.faceup[rank] = True
                     play_cnt += 1
                     if rank == self.jack_location:
-                        print("trying to replay JACK")
+                        if show_output:
+                            print("trying to replay JACK")
                         self.jack_location = None
                     else:
-                        print("revealed", Deck.card(newcard))
+                        if show_output:
+                            print("revealed", Deck.card(newcard))
                 else:
-                    print("can't use it")
+                    if show_output:
+                        print("can't use it")
             if newcard:
-                print('continuing')
+                if show_output:
+                    print('continuing')
                 card = newcard
                 rank = Deck.rank(card)
                 newcard = None
             else:
-                print('discarding', Deck.card(card))
+                if show_output:
+                    print('discarding', Deck.card(card))
                 round.discard_card(card)
                 break
         return win  # True or False
@@ -225,28 +239,31 @@ class Round(object):
             top_discard = Deck.card(self.look_discard())
         return "Round {} Turn {} Top Discard {}".format(self.rnd_cnt, self.turn_cnt+1, top_discard)
 
-    def turn(self,player):
-        print("Start Turn: %s" % str(self.turn_cnt+1), repr(player))
-        win = player.play(self)
-        print("End Turn:", repr(player))
-        print("Player end:", repr(self))
-        print()
+    def turn(self,player, show_output):
+        if show_output:
+            print("Start Turn: %s" % str(self.turn_cnt+1), repr(player))
+        win = player.play(self, show_output)
+        if show_output:
+            print("End Turn:", repr(player))
+            print("Player end:", repr(self))
+            print()
         return win
 
-    def play(self):
+    def play(self, show_output):
         self.deal()
         winner = None
         while True:
-            print(self)
+            if show_output:
+                print(self)
             p = self.players[self.start_idx % 2]
-            win = self.turn(p)
+            win = self.turn(p, show_output)
             if win:
                 winner = p
                 break
             self.start_idx += 1  # next player
             self.turn_cnt += 0.5
             p = self.players[self.start_idx % 2]
-            win = self.turn(p)
+            win = self.turn(p, show_output)
             if win:
                 winner = p
                 break
@@ -259,34 +276,35 @@ class Round(object):
         return winner, loser
 
 class Game(object):
-    def __init__(self, p1, p2, random_seed):
+    def __init__(self, p1, p2, random_seed, show_output=True):
         self.p1 = p1
         self.p2 = p2
         self.random_seed = random_seed
-        self.rounds = []
-
+        self.show_output = show_output
     def play(self, game_nbr):
         starting_player_idx = 0
         rnd_cnt = 0
-        print('Starting Game seed=',self.random_seed)
+        if self.show_output:
+            print('Starting Game seed=',self.random_seed)
         stats = []
         while True:
             rnd_cnt += 1
             rnd_type = "I"  # interim
             rnd = Round(p1, p2, starting_player_idx, rnd_cnt, self.random_seed + rnd_cnt)
-            self.rounds.append(rnd)
-            winner, loser = rnd.play()
+            winner, loser = rnd.play(self.show_output)
             winner.win_round()
             loser.lose_round()
-            print("- - - - - - - - - - - - - - - ")
-            print(winner.desc, "wins round!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
-            print("- - - - - - - - - - - - - - - ")
-            print()
+            if self.show_output:
+                print("- - - - - - - - - - - - - - - ")
+                print(winner.desc, "wins round!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
+                print("- - - - - - - - - - - - - - - ")
+                print()
             if winner.victory():
                 rnd_type = "F" # final
-                print("- - - - - - - - - - - - - - - ")
-                print(winner.desc, "wins game!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
-                print("- - - - - - - - - - - - - - - ")
+                if self.show_output:
+                    print("- - - - - - - - - - - - - - - ")
+                    print(winner.desc, "wins game!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
+                    print("- - - - - - - - - - - - - - - ")
             else:
                 if winner is p1:
                     starting_player_idx = 1
@@ -296,16 +314,18 @@ class Game(object):
             stats.append((game_nbr,rnd_cnt,rnd_type,p1.cnt,p2.cnt,abs(p1.cnt-p2.cnt),p1.streak,p2.streak,self.random_seed, self.random_seed+rnd_cnt))
             if rnd_type == "F":
                 break
-        print(p1.desc, "longest streak", p1.streak, p1.streak_marker)
-        print(p2.desc, "longest streak", p2.streak, p2.streak_marker)
+        if self.show_output:
+            print(p1.desc, "longest streak", p1.streak, p1.streak_marker)
+            print(p2.desc, "longest streak", p2.streak, p2.streak_marker)
 
         return stats
 
 
 if __name__ == '__main__':
     all_stats = []
-    total_runs = 1000
+    total_runs = 100
     checkpoint = 100
+    show_output = True
     start = time.time()
     for i in range(total_runs):
         game_nbr = i+1
@@ -313,7 +333,7 @@ if __name__ == '__main__':
         p2 = Player('b')
         seed = random.randint(1, 1000000)
         #seed = 169338
-        g = Game(p1,p2, seed)
+        g = Game(p1,p2, seed, show_output=show_output)
         stats = g.play(game_nbr)
         all_stats.extend(stats)
         if (game_nbr) % checkpoint == 0:
