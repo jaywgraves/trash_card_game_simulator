@@ -1,0 +1,5 @@
+echo building import for $1
+echo .read ddl.sql > importcmds
+echo .mode csv >> importcmds
+
+for f in $1/*.csv; do echo ".import $f games" >> importcmds; done
