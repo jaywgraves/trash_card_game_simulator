@@ -272,6 +272,7 @@ class Game(object):
         stats = []
         while True:
             rnd_cnt += 1
+            rnd_type = "I"  # interim
             rnd = Round(p1, p2, starting_player_idx, rnd_cnt, self.random_seed + rnd_cnt)
             self.rounds.append(rnd)
             winner, loser = rnd.play()
@@ -282,16 +283,19 @@ class Game(object):
             print("- - - - - - - - - - - - - - - ")
             print()
             if winner.victory():
+                rnd_type = "F" # final
                 print("- - - - - - - - - - - - - - - ")
                 print(winner.desc, "wins game!", p1.desc,"=",p1.cnt, "|", p2.desc,"=",p2.cnt)
                 print("- - - - - - - - - - - - - - - ")
-                break
-            if winner is p1:
-                starting_player_idx = 1
             else:
-                starting_player_idx = 0
+                if winner is p1:
+                    starting_player_idx = 1
+                else:
+                    starting_player_idx = 0
 
-            stats.append((game_nbr,i,p1.cnt,p2.cnt,abs(p1.cnt-p2.cnt),p1.streak,p2.streak,self.random_seed+rnd_cnt))
+            stats.append((game_nbr,rnd_cnt,rnd_type,p1.cnt,p2.cnt,abs(p1.cnt-p2.cnt),p1.streak,p2.streak,self.random_seed, self.random_seed+rnd_cnt))
+            if rnd_type == "F":
+                break
         print(p1.desc, "longest streak", p1.streak, p1.streak_marker)
         print(p2.desc, "longest streak", p2.streak, p2.streak_marker)
 
@@ -304,14 +308,15 @@ if __name__ == '__main__':
     checkpoint = 100
     start = time.time()
     for i in range(total_runs):
+        game_nbr = i+1
         p1 = Player('a')
         p2 = Player('b')
         seed = random.randint(1, 1000000)
         #seed = 169338
         g = Game(p1,p2, seed)
-        stats = g.play(i)
+        stats = g.play(game_nbr)
         all_stats.extend(stats)
-        if (i+1) % checkpoint == 0:
+        if (game_nbr) % checkpoint == 0:
             filename = format(i+1, "08d") + '_stats.csv'
             with open("data/" + filename,'w') as f:
                 for s in all_stats:
