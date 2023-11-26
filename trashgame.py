@@ -52,6 +52,7 @@ class Player(object):
 
     def reset(self):
         self.jack_location = None
+        self.perfect_turn = 0
         self.hand = []    # these are considered face-down
         self.faceup = []
 
@@ -88,6 +89,8 @@ class Player(object):
         # decide between top discard or draw pile
         # play as long as you can
         # discard
+
+        facedown_cnt_beg = self.faceup.count(False)
         play_cnt = 0
         card = None
         discard = round.look_discard()
@@ -178,7 +181,12 @@ class Player(object):
                     print('discarding', Deck.card(card))
                 round.discard_card(card)
                 break
-        return win  # True or False
+        if facedown_cnt_beg == self.cnt and self.faceup.count(False) == 0:
+            # started hand with everything facedown and
+            # ended hand with everything face up
+            self.perfect_turn = self.cnt
+
+        return win # True or False
 
     def win_round(self):
         self.cnt -= 1
@@ -245,6 +253,8 @@ class Round(object):
         win = player.play(self, show_output)
         if show_output:
             print("End Turn:", repr(player))
+            if player.perfect_turn:
+                print("Perfect Turn!")
             print("Player end:", repr(self))
             print()
         return win
@@ -318,7 +328,7 @@ class Game(object):
                 else:
                     starting_player_idx = 0
 
-            stats.append((game_nbr,rnd_cnt,rnd_type,p1.cnt,p2.cnt,abs(p1.cnt-p2.cnt),p1.streak,p2.streak,self.random_seed, self.random_seed+rnd_cnt))
+            stats.append((game_nbr,rnd_cnt,rnd_type,p1.cnt,p2.cnt,abs(p1.cnt-p2.cnt),p1.streak,p2.streak, p1.perfect_turn, p2.perfect_turn, self.random_seed, self.random_seed+rnd_cnt))
             if rnd_type == "F":
                 break
         if self.show_output:
