@@ -4,6 +4,14 @@ import random
 import os
 import trashgame
 
+seeds_used = set()
+def get_seed(start,end,seeds_used=seeds_used):
+    seed = random.randint(start, end)
+    while seed in seeds_used:
+        seed = random.randint(start, end)
+    seeds_used.add(seed)
+    return seed
+
 if __name__ == '__main__':
     all_stats = []
     total_runs = 500
@@ -20,7 +28,7 @@ if __name__ == '__main__':
         game_nbr = i+1
         p1 = trashgame.Player('a')
         p2 = trashgame.Player('b')
-        seed = random.randint(1, 1000000)
+        seed = get_seed(1, 1000000)
         g = trashgame.Game(p1, p2, seed, show_output=show_output)
         stats = g.play(game_nbr)
         all_stats.extend(stats)
