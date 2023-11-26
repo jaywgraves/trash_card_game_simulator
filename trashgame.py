@@ -52,7 +52,6 @@ class Player(object):
 
     def reset(self):
         self.jack_location = None
-        self.play_cnt = 0
         self.hand = []    # these are considered face-down
         self.faceup = []
 
@@ -283,7 +282,7 @@ class Game(object):
         self.random_seed = random_seed
         self.show_output = show_output
 
-    def play(self, game_nbr):
+    def play(self, game_nbr, rnd_max=None):
         p1 = self.p1
         p2 = self.p2
         starting_player_idx = 0
@@ -293,6 +292,10 @@ class Game(object):
         stats = []
         while True:
             rnd_cnt += 1
+            if rnd_max is not None and rnd_cnt > rnd_max:
+                if self.show_output:
+                    print("stopping game for debugging")
+                break
             rnd_type = "I"  # interim
             rnd = Round(p1, p2, starting_player_idx, rnd_cnt, self.random_seed + rnd_cnt)
             winner, loser = rnd.play(self.show_output)
