@@ -3,3 +3,5 @@ echo .read ddl.sql > importcmds
 echo .mode csv >> importcmds
 
 for f in $1/*.csv; do echo ".import $f games" >> importcmds; done
+
+echo .read idx.sql >> importcmds

@@ -1,0 +1,1 @@
+create index games_i01 on games (margin);
