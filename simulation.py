@@ -18,6 +18,8 @@ if __name__ == '__main__':
     checkpoint = 100
     show_output = True
     data_dir = 'data'
+    beg_seed = 1
+    end_seed = total_runs * 1000000
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
     if os.listdir(data_dir):
@@ -28,7 +30,7 @@ if __name__ == '__main__':
         game_nbr = i+1
         p1 = trashgame.Player('a')
         p2 = trashgame.Player('b')
-        seed = get_seed(1, 1000000)
+        seed = get_seed(beg_seed, end_seed)
         g = trashgame.Game(p1, p2, seed, show_output=show_output)
         stats = g.play(game_nbr)
         all_stats.extend(stats)
