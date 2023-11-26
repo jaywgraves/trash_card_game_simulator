@@ -170,7 +170,7 @@ class Player(object):
                 else:
                     if show_output:
                         print("can't use it")
-            if newcard:
+            if newcard is not None:
                 if show_output:
                     print('continuing')
                 card = newcard
