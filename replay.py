@@ -1,9 +1,13 @@
 import trashgame
 
 if __name__ == "__main__":
-    seed, rnd_max = 347707, None    # playable ace exposes an ace on last round
-    seed, rnd_max = 676079, 2       # full perfect turn
-    seed -= 1   # because 1 gets added to rnd_cnt before even starting
+    # seed needs to be game seed and play through the right number of rounds
+    # you can't take the rnd_seed and play from there because you need the entire
+    # history of the game to be repeatable
+
+    #seed, rnd_max = 347707, None     # playable ace exposes an ace on last round
+    #seed, rnd_max = 676078, 1       # full perfect turn
+    seed, rnd_max = 504985, 17      # perfect turn on non-Final round
     p1 = trashgame.Player('a')
     p2 = trashgame.Player('b')
     g = trashgame.Game(p1, p2, seed, show_output=True)

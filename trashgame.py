@@ -302,10 +302,6 @@ class Game(object):
         stats = []
         while True:
             rnd_cnt += 1
-            if rnd_max is not None and rnd_cnt >= rnd_max:
-                if self.show_output:
-                    print("stopping game for debugging")
-                break
             rnd_type = "I"  # interim
             rnd = Round(p1, p2, starting_player_idx, rnd_cnt, self.random_seed + rnd_cnt)
             winner, loser = rnd.play(self.show_output)
@@ -335,6 +331,10 @@ class Game(object):
 
             stats.append((game_nbr,rnd_cnt,rnd_type,p1.cnt,p2.cnt,abs(p1.cnt-p2.cnt),p1.streak,p2.streak, p1_perfect_turn, p2_perfect_turn, self.random_seed, self.random_seed+rnd_cnt))
             if rnd_type == "F":
+                break
+            if rnd_max is not None and rnd_cnt >= rnd_max:
+                if self.show_output:
+                    print("stopping game for debugging")
                 break
         if self.show_output:
             print(p1.desc, "longest streak", p1.streak, p1.streak_marker)
